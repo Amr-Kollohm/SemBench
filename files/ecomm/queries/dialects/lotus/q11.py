@@ -5,6 +5,11 @@ from lotus.dtype_extensions import ImageArray
 
 
 def run(data_dir: str):
+    # NOTE: Approximate policy with cascade_args is NOT supported for this query.
+    # LOTUS does not support embedding-based optimization for multi-column semantic joins
+    # (joins that reference multiple columns like {images} AND {productDescriptors} simultaneously).
+    # Cascade optimization only works for single-column joins.
+
     # Load data
     styles_details = pd.read_parquet(
         os.path.join(data_dir, "styles_details.parquet")

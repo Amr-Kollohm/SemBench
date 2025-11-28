@@ -1,11 +1,17 @@
 import os
 
 import pandas as pd
+import lotus
 from lotus.dtype_extensions import ImageArray
 
 from src.runner.generic_lotus_runner.generic_lotus_runner import (
     GenericLotusRunner,
 )
+
+# Import additional modules for approximate policy
+from lotus.models import SentenceTransformersRM
+from lotus.types import CascadeArgs
+from lotus.vector_store import FaissVS
 
 
 class LotusRunner(GenericLotusRunner):
@@ -34,6 +40,33 @@ class LotusRunner(GenericLotusRunner):
             concurrent_llm_worker,
             skip_setup,
         )
+
+        # Initialize components for approximate policy
+        if hasattr(self, "policy") and self.policy == "approximate":
+            # Initialize both embedding models for mixed modality support
+            self.rm_text = SentenceTransformersRM(model="intfloat/e5-base-v2")
+            self.rm_image = SentenceTransformersRM("clip-ViT-B-32")
+            self.vs = FaissVS()
+            self.cascade_args = CascadeArgs(
+                recall_target=0.8, precision_target=0.8
+            )
+
+    def _configure_lotus_for_join_type(self, join_type: str):
+        """Configure LOTUS settings based on join type (text-only, image-only, or mixed)."""
+        if hasattr(self, "policy") and self.policy == "approximate":
+            if join_type == "text":
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_text, vs=self.vs
+                )
+            elif join_type == "image":
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_image, vs=self.vs
+                )
+            else:  # mixed or default
+                # For mixed modality, use image embeddings as they handle both
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_image, vs=self.vs
+                )
 
     def _execute_q1(self) -> pd.DataFrame:
         """
@@ -77,6 +110,8 @@ class LotusRunner(GenericLotusRunner):
         Returns:
             DataFrame with columns: ID, image_id
         """
+        # Configure for image-only join (text in prompt is just column names, main comparison is visual)
+        self._configure_lotus_for_join_type("image")
 
         table_df = self.load_data("ap_warrior.csv", sep=",", quotechar='"')
         image_dir = os.path.join(self.data_path, "images")
@@ -93,8 +128,23 @@ class LotusRunner(GenericLotusRunner):
             }
         )
 
+        # Reset indices for approximate policy
+        if hasattr(self, "policy") and self.policy == "approximate":
+            image_df = image_df.reset_index(drop=True)
+            table_df = table_df.reset_index(drop=True)
+
         prompt = "{image} shows the logo of horse racetrack {Track}"
-        result_df = image_df.sem_join(table_df, prompt, strategy="zs-cot")
+
+        if hasattr(self, "policy") and self.policy == "approximate":
+            result_df = image_df.sem_join(
+                table_df,
+                prompt,
+                strategy="zs-cot",
+                cascade_args=self.cascade_args
+            )
+        else:
+            result_df = image_df.sem_join(table_df, prompt, strategy="zs-cot")
+
         result_df["image_id"] = result_df["image_filepath"].apply(
             lambda x: x.split("/")[-1]
         )
@@ -108,6 +158,8 @@ class LotusRunner(GenericLotusRunner):
         Returns:
             DataFrame with columns: ID, image_id, color
         """
+        # Configure for image-only join
+        self._configure_lotus_for_join_type("image")
 
         table_df = self.load_data("ap_warrior.csv", sep=",", quotechar='"')
         image_dir = os.path.join(self.data_path, "images")
@@ -124,8 +176,23 @@ class LotusRunner(GenericLotusRunner):
             }
         )
 
+        # Reset indices for approximate policy
+        if hasattr(self, "policy") and self.policy == "approximate":
+            image_df = image_df.reset_index(drop=True)
+            table_df = table_df.reset_index(drop=True)
+
         prompt = "{image} shows the logo of horse racetrack {Track}"
-        result_df = image_df.sem_join(table_df, prompt, strategy="zs-cot")
+
+        if hasattr(self, "policy") and self.policy == "approximate":
+            result_df = image_df.sem_join(
+                table_df,
+                prompt,
+                strategy="zs-cot",
+                cascade_args=self.cascade_args
+            )
+        else:
+            result_df = image_df.sem_join(table_df, prompt, strategy="zs-cot")
+
         result_df["image_id"] = result_df["image_filepath"].apply(
             lambda x: x.split("/")[-1]
         )
@@ -421,6 +488,8 @@ class LotusRunner(GenericLotusRunner):
         Returns:
             DataFrame with columns: Airlines, image_id
         """
+        # Configure for image-only join
+        self._configure_lotus_for_join_type("image")
 
         table_df = self.load_data(
             "tampa_international_airport.csv", sep=",", quotechar='"'
@@ -440,8 +509,23 @@ class LotusRunner(GenericLotusRunner):
             }
         )
 
+        # Reset indices for approximate policy
+        if hasattr(self, "policy") and self.policy == "approximate":
+            table_df = table_df.reset_index(drop=True)
+            image_df = image_df.reset_index(drop=True)
+
         prompt = "{image} shows the logo of {Airlines}"
-        result_df = table_df.sem_join(image_df, prompt, strategy="zs-cot")
+
+        if hasattr(self, "policy") and self.policy == "approximate":
+            result_df = table_df.sem_join(
+                image_df,
+                prompt,
+                strategy="zs-cot",
+                cascade_args=self.cascade_args
+            )
+        else:
+            result_df = table_df.sem_join(image_df, prompt, strategy="zs-cot")
+
         result_df["image_id"] = result_df["image_filepath"].apply(
             lambda x: x.split("/")[-1]
         )

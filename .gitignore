@@ -59,3 +59,7 @@ files/medical/__MACOSX
 
 scripts/scale_factor_experiment.sh
 src/plot_scalability.py
+
+__MACOSX/
+
+figures/

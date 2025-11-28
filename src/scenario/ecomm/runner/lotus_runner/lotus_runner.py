@@ -15,6 +15,11 @@ from runner.generic_runner import GenericQueryMetric, GenericRunner
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 from runner.generic_lotus_runner.generic_lotus_runner import GenericLotusRunner
 
+# Import additional modules for approximate policy
+from lotus.models import SentenceTransformersRM
+from lotus.types import CascadeArgs
+from lotus.vector_store import FaissVS
+
 
 class LotusRunner(GenericLotusRunner):
     def __init__(
@@ -28,6 +33,33 @@ class LotusRunner(GenericLotusRunner):
         super().__init__(
             use_case, scale_factor, model_name, concurrent_llm_worker
         )
+
+        # Initialize components for approximate policy
+        if hasattr(self, "policy") and self.policy == "approximate":
+            # Initialize both embedding models for mixed modality support
+            self.rm_text = SentenceTransformersRM(model="intfloat/e5-base-v2")
+            self.rm_image = SentenceTransformersRM("clip-ViT-B-32")
+            self.vs = FaissVS()
+            self.cascade_args = CascadeArgs(
+                recall_target=0.8, precision_target=0.8
+            )
+
+    def _configure_lotus_for_join_type(self, join_type: str):
+        """Configure LOTUS settings based on join type (text-only, image-only, or mixed)."""
+        if hasattr(self, "policy") and self.policy == "approximate":
+            if join_type == "text":
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_text, vs=self.vs
+                )
+            elif join_type == "image":
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_image, vs=self.vs
+                )
+            else:  # mixed or default
+                # For mixed modality, use image embeddings as they handle both
+                lotus.settings.configure(
+                    lm=self.lm, rm=self.rm_image, vs=self.vs
+                )
 
     def _discover_queries(self):
         # Match default implementation from GenericRunner
@@ -49,6 +81,13 @@ class LotusRunner(GenericLotusRunner):
                 query_id, self.get_system_name()
             )
             query_module = types.ModuleType(f"q{query_id}_module")
+
+            # Inject helper functions and objects for approximate policy
+            if hasattr(self, "policy") and self.policy == "approximate":
+                query_module.__dict__["_configure_lotus"] = self._configure_lotus_for_join_type
+                query_module.__dict__["_cascade_args"] = self.cascade_args
+                query_module.__dict__["_policy"] = self.policy
+
             exec(query_text, query_module.__dict__)
 
             start_time = time.time()
