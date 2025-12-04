@@ -67,7 +67,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             lambda row: row["Role"] == "Bob Whitewood"
         )
         pz_dataset = pz_dataset.project(["director"])
-        output = pz_dataset.run(self.palimpzest_config())
+        output = pz_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -88,7 +88,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             ],
         )
         pz_table = pz_table.project(["ID", "filename"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -121,7 +121,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             depends_on=["contents"],
         )
         pz_table = pz_table.project(["ID", "filename", "color"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -134,7 +134,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         pz_text = pz_text.sem_filter(prompt, depends_on=["title", "text"])
         pz_text = pz_text.project(["title"])
-        output = pz_text.run(self.palimpzest_config())
+        output = pz_text.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -147,7 +147,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         pz_text = pz_text.sem_filter(prompt, depends_on=["title", "text"])
         pz_text = pz_text.project(["title"])
-        output = pz_text.run(self.palimpzest_config())
+        output = pz_text.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -193,7 +193,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             depends_on=["text"],
         )
         pz_text = pz_text.project(["title", "genres"])
-        output = pz_text.run(self.palimpzest_config())
+        output = pz_text.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
         output_df = output.to_df()
 
         expanded_data = []
@@ -258,7 +258,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             agg=prompt,
             depends_on=["title", "text"],
         )
-        output = pz_text.run(self.palimpzest_config())
+        output = pz_text.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -271,7 +271,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             prompt, depends_on=["Airlines", "Destinations"]
         )
         pz_table = pz_table.project(["Airlines"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -284,7 +284,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             prompt, depends_on=["Airlines", "Destinations"]
         )
         pz_table = pz_table.project(["Airlines"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -297,7 +297,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             prompt, depends_on=["Airlines", "Destinations"]
         )
         pz_table = pz_table.project(["Airlines"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -318,6 +318,6 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             ],
         )
         pz_table = pz_table.project(["Airlines", "filename"])
-        output = pz_table.run(self.palimpzest_config())
+        output = pz_table.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output

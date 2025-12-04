@@ -53,7 +53,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
                     query_id=query_id, model_name=self.model_name
                 ),
                 self.scenario_handler.get_data_dir(),
-                self.scale_factor
+                self.scale_factor,
+                self.validator
             )
             execution_time = time.time() - start_time
 

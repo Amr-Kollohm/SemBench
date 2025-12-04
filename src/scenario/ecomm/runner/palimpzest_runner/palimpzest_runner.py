@@ -48,7 +48,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
 
             start_time = time.time()
             results = query_module.run(
-                self.palimpzest_config(), self.scenario_handler.get_data_dir()
+                self.palimpzest_config(), self.scenario_handler.get_data_dir(), self.validator
             )
             execution_time = time.time() - start_time
 

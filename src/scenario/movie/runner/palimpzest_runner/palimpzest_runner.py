@@ -64,7 +64,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         reviews = reviews.project(["reviewId"])
         reviews = reviews.limit(5)
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -90,7 +90,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         reviews = reviews.project(["reviewId"])
         reviews = reviews.limit(5)
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -115,7 +115,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         reviews = reviews.count()
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -147,7 +147,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         reviews = reviews.project(["positivity"])
         reviews = reviews.average()
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -183,7 +183,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         input3 = input3.project(["movieId", "reviewId", "reviewId_right"])
         input3 = input3.limit(10)
 
-        output = input3.run(self.palimpzest_config())
+        output = input3.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -220,7 +220,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         input3 = input3.project(["movieId", "reviewId", "reviewId_right"])
         input3 = input3.limit(10)
 
-        output = input3.run(self.palimpzest_config())
+        output = input3.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -256,7 +256,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         input3 = input3.project(["movieId", "reviewId", "reviewId_right"])
 
-        output = input3.run(self.palimpzest_config())
+        output = input3.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -292,7 +292,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         reviews = reviews.groupby(gby_desc)
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
         return output
 
     def _execute_q9(self) -> DataRecordCollection:
@@ -339,7 +339,7 @@ Only provide the score number (1-5) with no other comments.""",
         # Project to required columns
         reviews = reviews.project(["reviewId", "reviewScore"])
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
         return output
 
     def _execute_q10(self) -> DataRecordCollection:
@@ -389,5 +389,5 @@ Only provide the score number (1-5) with no other comments.""",
         )
         reviews = reviews.groupby(gby_desc)
 
-        output = reviews.run(self.palimpzest_config())
+        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
         return output

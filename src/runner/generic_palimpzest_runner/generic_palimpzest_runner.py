@@ -35,6 +35,7 @@ class GenericPalimpzestRunner(GenericRunner):
         concurrent_llm_worker=20,
         skip_setup: bool = False,
         config_file: Optional[str] = None,
+        validator_model: str = "gpt-4o-mini",
     ):
         """
         Initialize Palimpzest runner.
@@ -45,6 +46,7 @@ class GenericPalimpzestRunner(GenericRunner):
             concurrent_llm_worker: Number of concurrent workers
             skip_setup: Whether to skip scenario setup
             config_file: Optional path to JSON configuration file
+            validator_model: Model to use for validator (default: gpt-4o-mini)
         """
         super().__init__(
             use_case,
@@ -57,6 +59,10 @@ class GenericPalimpzestRunner(GenericRunner):
         env_config_file = os.getenv("PALIMPZEST_CONFIG_FILE")
         self.config_file = config_file or env_config_file
         self.config_data = self._load_config() if self.config_file else None
+        
+        # Create validator with specified model
+        validator_model_constant = self._get_model_from_name(validator_model)
+        self.validator = pz.Validator(model=validator_model_constant)
 
     @override
     def get_system_name(self) -> str:
@@ -219,7 +225,7 @@ class GenericPalimpzestRunner(GenericRunner):
             if reasoning_effort is not None:
                 config_kwargs["reasoning_effort"] = reasoning_effort
 
-            return pz.QueryProcessorConfig(**config_kwargs)
+            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=50)
         else:
             # Use self.model_name to determine the model when config_data is not provided
             selected_model = self._get_model_from_name(self.model_name)
@@ -240,7 +246,7 @@ class GenericPalimpzestRunner(GenericRunner):
                     "minimal"  # Use minimal reasoning effort
                 )
 
-            return pz.QueryProcessorConfig(**config_kwargs)
+            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=50)
 
     def execute_query(self, query_id: int) -> GenericQueryMetric:
         """

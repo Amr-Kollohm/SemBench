@@ -90,7 +90,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         images = images.count()
 
-        output = images.run(self.palimpzest_config())
+        output = images.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -134,7 +134,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         )
         audios = audios.count()
 
-        output = audios.run(self.palimpzest_config())
+        output = audios.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         return output
 
@@ -181,7 +181,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         images = images.groupby(gby_desc)
 
         # Execute the groupby to get results
-        grouped_result = images.run(self.palimpzest_config())
+        grouped_result = images.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics before processing
         exec_stats = grouped_result.execution_stats
@@ -211,7 +211,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="max_cities", vals=max_cities_df, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -262,7 +262,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         audios = audios.groupby(gby_desc)
 
         # Execute the groupby to get results
-        grouped_result = audios.run(self.palimpzest_config())
+        grouped_result = audios.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics before processing
         exec_stats = grouped_result.execution_stats
@@ -292,7 +292,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="max_cities", vals=max_cities_df, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -370,8 +370,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         elephant_audio_cities = elephant_audios.project(["city"])
 
         # Execute queries and preserve execution statistics
-        image_result = elephant_image_cities.run(self.palimpzest_config())
-        audio_result = elephant_audio_cities.run(self.palimpzest_config())
+        image_result = elephant_image_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
+        audio_result = elephant_audio_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics (combine both)
         exec_stats = image_result.execution_stats
@@ -404,7 +404,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="combined_cities", vals=combined_cities, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -482,8 +482,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         monkey_audio_cities = monkey_audios.project(["city"])
 
         # Execute queries and preserve execution statistics
-        image_result = monkey_image_cities.run(self.palimpzest_config())
-        audio_result = monkey_audio_cities.run(self.palimpzest_config())
+        image_result = monkey_image_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
+        audio_result = monkey_audio_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics (combine both)
         exec_stats = image_result.execution_stats
@@ -518,7 +518,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="result_cities", vals=result_cities, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -574,8 +574,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         impala_cities = impala_images.project(["city"])
 
         # Execute queries and preserve execution statistics
-        zebra_result = zebra_cities.run(self.palimpzest_config())
-        impala_result = impala_cities.run(self.palimpzest_config())
+        zebra_result = zebra_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
+        impala_result = impala_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics (combine both)
         exec_stats = zebra_result.execution_stats
@@ -605,7 +605,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="common_cities", vals=common_cities, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -700,8 +700,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         elephant_aud_result = elephant_audio_cities.run(
             self.palimpzest_config()
         )
-        monkey_img_result = monkey_image_cities.run(self.palimpzest_config())
-        monkey_aud_result = monkey_audio_cities.run(self.palimpzest_config())
+        monkey_img_result = monkey_image_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
+        monkey_aud_result = monkey_audio_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics (combine all)
         exec_stats = elephant_img_result.execution_stats
@@ -747,7 +747,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="result_cities", vals=result_cities, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -825,8 +825,8 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         monkey_audio_cities = monkey_audios.project(["city"])
 
         # Execute queries and preserve execution statistics
-        image_result = monkey_image_cities.run(self.palimpzest_config())
-        audio_result = monkey_audio_cities.run(self.palimpzest_config())
+        image_result = monkey_image_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
+        audio_result = monkey_audio_cities.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics (combine both)
         exec_stats = image_result.execution_stats
@@ -858,7 +858,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="result_cities", vals=result_cities, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
@@ -910,7 +910,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         images = images.groupby(gby_desc)
 
         # Execute the groupby to get results
-        grouped_result = images.run(self.palimpzest_config())
+        grouped_result = images.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Preserve execution statistics before processing
         exec_stats = grouped_result.execution_stats
@@ -945,7 +945,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         final_dataset = pz.MemoryDataset(
             id="max_pairs", vals=max_pairs_df, schema=result_cols
         )
-        final_result = final_dataset.run(self.palimpzest_config())
+        final_result = final_dataset.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
 
         # Restore the original execution statistics
         final_result.execution_stats = exec_stats
