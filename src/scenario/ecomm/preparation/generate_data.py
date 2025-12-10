@@ -202,18 +202,6 @@ def _create_sample(target_dir: str, scale_factor: int, seed: int) -> str:
     duckdb.sql(
         f"""
         COPY (
-            SELECT styles_details.*
-            FROM read_parquet('{os.path.join(out_dir, 'styles.parquet')}') AS styles
-            JOIN read_parquet('{os.path.join(input_dir, 'styles_details.parquet')}') AS styles_details
-            ON styles_details.id = styles.id
-        )
-        TO '{os.path.join(out_dir, 'styles_details.parquet')}' (FORMAT PARQUET)
-    """
-    )
-
-    duckdb.sql(
-        f"""
-        COPY (
             SELECT image_mapping.*
             FROM read_parquet('{os.path.join(out_dir, 'styles.parquet')}') AS styles
             JOIN read_parquet('{os.path.join(input_dir, 'image_mapping.parquet')}') AS image_mapping
@@ -250,6 +238,19 @@ def _create_sample(target_dir: str, scale_factor: int, seed: int) -> str:
         filtered_table = table.take(valid_rows)
         pq.write_table(filtered_table, os.path.join(out_dir, "image_mapping.parquet"))
         print(f"  Removed {len(missing_images)} missing images from image_mapping.parquet")
+
+    # Create styles_details.parquet AFTER filtering image_mapping to only include IDs with valid images
+    duckdb.sql(
+        f"""
+        COPY (
+            SELECT styles_details.*
+            FROM read_parquet('{os.path.join(out_dir, 'image_mapping.parquet')}') AS image_mapping
+            JOIN read_parquet('{os.path.join(input_dir, 'styles_details.parquet')}') AS styles_details
+            ON styles_details.id = image_mapping.id
+        )
+        TO '{os.path.join(out_dir, 'styles_details.parquet')}' (FORMAT PARQUET)
+    """
+    )
 
     return out_dir
 
