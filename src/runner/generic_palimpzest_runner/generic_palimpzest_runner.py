@@ -190,13 +190,20 @@ class GenericPalimpzestRunner(GenericRunner):
         reasoning_models = {Model.GPT_5_MINI}
         return model in reasoning_models
 
-    def palimpzest_config(self) -> pz.QueryProcessorConfig:
+    def palimpzest_config(self, num_semantic_ops: Optional[int] = None) -> pz.QueryProcessorConfig:
         """
         Create Palimpzest configuration.
+
+        Args:
+            num_semantic_ops: Number of semantic operators in the query.
+                            If provided, sample_budget = 48 * num_semantic_ops.
+                            If None, defaults to 50.
 
         Returns:
             QueryProcessorConfig for Palimpzest
         """
+        # Calculate sample budget based on semantic operators
+        sample_budget = 48 * num_semantic_ops if num_semantic_ops is not None else 50
 
         # Use configuration data if available, otherwise use defaults
         if self.config_data:
@@ -225,7 +232,7 @@ class GenericPalimpzestRunner(GenericRunner):
             if reasoning_effort is not None:
                 config_kwargs["reasoning_effort"] = reasoning_effort
 
-            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=50)
+            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=sample_budget)
         else:
             # Use self.model_name to determine the model when config_data is not provided
             selected_model = self._get_model_from_name(self.model_name)
@@ -246,7 +253,7 @@ class GenericPalimpzestRunner(GenericRunner):
                     "minimal"  # Use minimal reasoning effort
                 )
 
-            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=50)
+            return pz.QueryProcessorConfig(**config_kwargs, sample_budget=sample_budget)
 
     def execute_query(self, query_id: int) -> GenericQueryMetric:
         """
