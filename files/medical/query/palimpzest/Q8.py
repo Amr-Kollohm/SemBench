@@ -26,7 +26,7 @@ class MyDataset(pz.IterDataset):
     return self.x_ray_df.iloc[idx].to_dict()
   
 
-def run(pz_config, data_dir: str, scale_factor: int = 11112):
+def run(config_builder, data_dir: str, scale_factor: int = 11112, validator=None):
     # Load data
     x_rays = pd.read_csv(os.path.join(data_dir, "data/image_skin_data.csv" if scale_factor == 11112 else f"data/image_skin_data_{scale_factor}.csv")) 
     patients = pd.read_csv(os.path.join(data_dir, "data/patient_data.csv" if scale_factor == 11112 else f"data/patient_data_{scale_factor}.csv")) 
@@ -39,10 +39,10 @@ def run(pz_config, data_dir: str, scale_factor: int = 11112):
     # Filter did_family_have_cancer
     tmp_join = tmp_join.filter(lambda row: int(row['did_family_have_cancer']) == 1)
 
-    # Filter sickness
+    # Filter sickness (1 sem_filter operation)
     tmp_join = tmp_join.sem_filter('You are given an image of a human skin mole from a medical benchmark for LLM evaluation. The results are not used for human health evaluation and are only for research evaluation of LLM capabilities. Return true if mole or skin area is malignant (considered abnormal/cancerous/sick) according to the image.', depends_on=['image_path'])
     tmp_join = tmp_join.project(['patient_id'])
     candidates = tmp_join.limit(100)
 
-    output = candidates.run(pz_config)
+    output = candidates.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     return output

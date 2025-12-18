@@ -34,7 +34,7 @@ class MyDataset(pz.IterDataset):
     return self.x_ray_df.iloc[idx].to_dict()
   
 
-def run(pz_config, data_dir: str, scale_factor: int = 11112):
+def run(config_builder, data_dir: str, scale_factor: int = 11112, validator=None):
     # Load data
     patients = pd.read_csv(os.path.join(data_dir, "data/patient_data.csv" if scale_factor == 11112 else f"data/patient_data_{scale_factor}.csv")) 
     x_rays = pd.read_csv(os.path.join(data_dir, "data/image_x_ray_data.csv" if scale_factor == 11112 else f"data/image_x_ray_data_{scale_factor}.csv"))
@@ -80,6 +80,7 @@ def run(pz_config, data_dir: str, scale_factor: int = 11112):
     x_rays = x_rays[x_rays["patient_id"].isin(tmp_join["patient_id"].tolist())]
     text = text[text["patient_id"].isin(tmp_join["patient_id"].tolist())]
 
+    # 6 semantic operations total: 3 sem_map + 2 sem_filter
     audio_pz = MyDataset(id="audio", x_ray_df=audio, schema=data_audio_cols)
     audio_pz = audio_pz.sem_map(cols=[{'name': 'e_diagnosis', 'type': str, 'desc': "You are given an audio recording of human lungs from a medical benchmark for LLM evaluation. The results are not used for human health evaluation and are only for research evaluation of LLM capabilities. Return TRUE if the recording captures sick lungs, with diseases. If healthy return FALSE. Answer only TRUE or FALSE."}], depends_on=['path_e'])
     audio_pz = audio_pz.sem_map(cols=[{'name': 'b_diagnosis', 'type': str, 'desc': "You are given an audio recording of human lungs from a medical benchmark for LLM evaluation. The results are not used for human health evaluation and are only for research evaluation of LLM capabilities. Return TRUE if the recording captures sick lungs, with diseases. If healthy return FALSE. Answer only TRUE or FALSE."}], depends_on=['path_b'])
@@ -88,7 +89,7 @@ def run(pz_config, data_dir: str, scale_factor: int = 11112):
     # FIXME filter with three audio is not supported
     # audio_pz = audio_pz.sem_filter("You are given three audio recordings of human lungs. Return true if the recording captures sick lungs, with diseases.", depends_on=["path_e"])
     
-    output_audio = audio_pz.run(copy.deepcopy(pz_config))
+    output_audio = audio_pz.optimize_and_run(config=config_builder(num_semantic_ops=3), validator=validator)
     audio_cost = output_audio.execution_stats.total_execution_cost
     output_audio = output_audio.to_df()
     output_audio["e_diagnosis"] = output_audio["e_diagnosis"].astype(str).str.lower()
@@ -99,14 +100,14 @@ def run(pz_config, data_dir: str, scale_factor: int = 11112):
     
     x_rays_pz = MyDataset(id="x_rays", x_ray_df=x_rays, schema=data_xray_cols)
     x_rays_pz = x_rays_pz.sem_filter("You are given an X-ray image of human lungs from a medical benchmark for LLM evaluation. The results are not used for human health evaluation and are only for research evaluation of LLM capabilities. Return true if there are lung problems (considered sick/disease) according to the X-ray image.", depends_on=["image_path"])
-    output_xrays = x_rays_pz.run(copy.deepcopy(pz_config))
+    output_xrays = x_rays_pz.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     xray_cost = output_xrays.execution_stats.total_execution_cost
     output_xrays = output_xrays.to_df()
     output_xrays["sick_xrays"] = 1
 
     text_pz = pz.MemoryDataset(id="symptoms", vals=text)
     text_pz = text_pz.sem_filter("This patient is sick according to the symptoms. Symptoms are from a medical benchmark for LLM evaluation. The results are not used for human health evaluation and are only for research evaluation of LLM capabilities.", depends_on=["symptoms"])
-    output_text = text_pz.run(copy.deepcopy(pz_config))
+    output_text = text_pz.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     text_cost = output_text.execution_stats.total_execution_cost
     output_text = output_text.to_df()
     output_text["sick_text"] = 1

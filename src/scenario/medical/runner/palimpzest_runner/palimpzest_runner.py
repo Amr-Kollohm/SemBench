@@ -49,12 +49,12 @@ class PalimpzestRunner(GenericPalimpzestRunner):
 
             start_time = time.time()
             results = query_module.run(
-                self.get_palimpzest_config(
-                    query_id=query_id, model_name=self.model_name
+                config_builder=lambda num_semantic_ops: self.get_palimpzest_config(
+                    query_id=query_id, model_name=self.model_name, num_semantic_ops=num_semantic_ops
                 ),
-                self.scenario_handler.get_data_dir(),
-                self.scale_factor,
-                self.validator
+                data_dir=self.scenario_handler.get_data_dir(),
+                scale_factor=self.scale_factor,
+                validator=self.validator
             )
             execution_time = time.time() - start_time
 
@@ -82,8 +82,11 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         return metric
 
     def get_palimpzest_config(
-        self, query_id, model_name
+        self, query_id, model_name, num_semantic_ops
     ) -> pz.QueryProcessorConfig:
+        # Calculate sample budget based on semantic operators
+        sample_budget = 48 * num_semantic_ops
+        
         is_audio = True if query_id in [2, 5, 6, 7] else False
 
         model = None
@@ -123,6 +126,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
                 progress=True,
                 available_models=[model],
                 reasoning_effort="medium",  # can be None (default), "low", "medium", or "high"
+                sample_budget=sample_budget,
             )
         else:
             return pz.QueryProcessorConfig(
@@ -133,4 +137,5 @@ class PalimpzestRunner(GenericPalimpzestRunner):
                 verbose=False,
                 progress=True,
                 available_models=model,
+                sample_budget=sample_budget,
             )
