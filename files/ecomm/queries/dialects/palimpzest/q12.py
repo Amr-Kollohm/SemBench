@@ -23,7 +23,7 @@ def add_image_data(
     return styles_details
 
 
-def run(pz_config, data_dir: str):
+def run(config_builder, data_dir: str, validator=None):
     # Load data
     styles_details = pd.read_parquet(
         os.path.join(data_dir, "styles_details.parquet")
@@ -36,7 +36,7 @@ def run(pz_config, data_dir: str):
     styles_details = pz.MemoryDataset(id="styles_details", vals=styles_details)
     styles_details = add_image_data(styles_details, data_dir)
 
-    # Filter data
+    # Filter data (2 semantic operations: 1 sem_filter + 1 sem_add_columns)
     styles_details = styles_details.sem_filter(
         "Does the following description describe a product from either Adidas or Puma?",
         depends_on=[
@@ -78,5 +78,5 @@ def run(pz_config, data_dir: str):
     
     styles_details = styles_details.project(["product_id"])
 
-    output = styles_details.run(pz_config)
+    output = styles_details.optimize_and_run(config=config_builder(num_semantic_ops=3), validator=validator)
     return output

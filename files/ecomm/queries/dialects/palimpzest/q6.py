@@ -3,7 +3,7 @@ import pandas as pd
 import palimpzest as pz
 
 
-def run(pz_config, data_dir: str):
+def run(config_builder, data_dir: str, validator=None):
     # Load data
     images = pz.ImageFileDataset(
         id="images", path=os.path.join(data_dir, "images")
@@ -25,7 +25,7 @@ def run(pz_config, data_dir: str):
     ]
     styles_details = pz.MemoryDataset(id="styles_details", vals=styles_details)
 
-    # Perform map/extract
+    # Perform map/extract (1 sem_add_columns operation)
     images = images.sem_add_columns(
         cols=[
             {
@@ -62,5 +62,5 @@ def run(pz_config, data_dir: str):
     )
     images = images.project(["product_id", "category"])
 
-    output = images.run(pz_config)
+    output = images.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     return output

@@ -3,7 +3,7 @@ import pandas as pd
 import palimpzest as pz
 
 
-def run(pz_config, data_dir: str):
+def run(config_builder, data_dir: str, validator=None):
     # Load data
     styles_details = pd.read_parquet(
         os.path.join(data_dir, "styles_details.parquet")
@@ -13,7 +13,7 @@ def run(pz_config, data_dir: str):
     styles_details = styles_details[styles_details["price"] <= 500]
     styles_details = pz.MemoryDataset(id="styles_details", vals=styles_details)
 
-    # Join data
+    # Join data (1 sem_join operation)
     styles_details = styles_details.sem_join(
         styles_details,
         """
@@ -40,5 +40,5 @@ def run(pz_config, data_dir: str):
     )
     styles_details = styles_details.project(["product_id"])
 
-    output = styles_details.run(pz_config)
+    output = styles_details.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     return output

@@ -26,7 +26,7 @@ def add_image_data(
     return styles_details
 
 
-def run(pz_config, data_dir: str):
+def run(config_builder, data_dir: str, validator=None):
     # Load data
     styles_details = pd.read_parquet(
         os.path.join(data_dir, "styles_details.parquet")
@@ -55,7 +55,7 @@ def run(pz_config, data_dir: str):
     accessories = pz.MemoryDataset(id="accessories", vals=accessories)
     accessories = add_image_data(accessories, data_dir, "_accessories")
 
-    # Filters
+    # Filters (4 sem_filter operations)
     footwear_f = footwear.sem_filter("""
         You will receive an image and a description of a product.
         Determine whether the product can be worn on the feet, like shoes, sandals, flip-flops, ...
@@ -106,7 +106,7 @@ def run(pz_config, data_dir: str):
         ],
     )
 
-    # Perform joins
+    # Perform joins (3 sem_join operations; total: 7 operations)
     processed_1 = footwear_f.sem_join(
         accessories_f,
         """
@@ -172,5 +172,5 @@ def run(pz_config, data_dir: str):
     )
     processed_5 = processed_4.project(["product_id"])
 
-    output = processed_5.run(pz_config)
+    output = processed_5.optimize_and_run(config=config_builder(num_semantic_ops=7), validator=validator)
     return output

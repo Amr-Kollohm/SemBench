@@ -46,9 +46,12 @@ class PalimpzestRunner(GenericPalimpzestRunner):
             query_module = types.ModuleType(f"q{query_id}_module")
             exec(query_text, query_module.__dict__)
 
+            # Create config builder lambda
+            config_builder = lambda num_semantic_ops: self.palimpzest_config(num_semantic_ops)
+
             start_time = time.time()
             results = query_module.run(
-                self.palimpzest_config(), self.scenario_handler.get_data_dir(), self.validator
+                config_builder, self.scenario_handler.get_data_dir(), self.validator
             )
             execution_time = time.time() - start_time
 

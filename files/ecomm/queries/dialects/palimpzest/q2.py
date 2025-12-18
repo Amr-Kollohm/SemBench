@@ -3,13 +3,13 @@ import pandas as pd
 import palimpzest as pz
 
 
-def run(pz_config, data_dir: str):
+def run(config_builder, data_dir: str, validator=None):
     # Load data
     images = pz.ImageFileDataset(
         id="images", path=os.path.join(data_dir, "images")
     )
 
-    # Filter data
+    # Filter data (1 sem_filter operation)
     images = images.sem_filter(
         "The image shows a (pair of) sports shoe(s) that feature the colors yellow and silver",
         depends_on=["contents"],
@@ -26,5 +26,5 @@ def run(pz_config, data_dir: str):
     )
     images = images.project(["product_id"])
 
-    output = images.run(pz_config)
+    output = images.optimize_and_run(config=config_builder(num_semantic_ops=1), validator=validator)
     return output
