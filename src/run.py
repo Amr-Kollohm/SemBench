@@ -127,7 +127,7 @@ def run_benchmark(
     use_cases: List[str],
     queries: List[int] = None,
     skip_setup: bool = False,
-    model_name: str = "gemini-2.5-flash",
+    model_name = None,
     scale_factor: str = None,
 ):
     """
@@ -138,8 +138,13 @@ def run_benchmark(
         use_cases: List of use cases to run
         queries: Optional list of specific query IDs to run (e.g., [1, 5])
         skip_setup: Whether to skip setup phase
-        model_name: Model name to use for systems that support it
+        model_name: Model name(s) to use - can be a string or list of strings
     """
+    # Ensure model_name is a list
+    if model_name is None:
+        model_name = ["gemini-2.5-flash"]
+    elif isinstance(model_name, str):
+        model_name = [model_name]
     results = {}
 
     for use_case in use_cases:
@@ -259,10 +264,10 @@ Examples:
     )
 
     parser.add_argument(
-        "--model",
-        type=str,
-        default="gemini-2.5-flash",
-        help="Model name to use for systems that support it (default: gemini-2.5-flash)",
+        "--models",
+        nargs="+",
+        default=["gemini-2.5-flash"],
+        help="Model name(s) to use for systems that support it. Can specify single model or multiple models separated by space (default: gemini-2.5-flash).",
     )
 
     parser.add_argument(
@@ -288,7 +293,7 @@ Examples:
     print("Multi-Modal Data Systems Benchmark")
     print(f"Systems: {', '.join(args.systems)}")
     print(f"Use cases: {', '.join(args.use_cases)}")
-    print(f"Model: {args.model}")
+    print(f"Model(s): {', '.join(args.models)}")
     print(f"Queries: {', '.join(map(str, query_ids)) if query_ids else 'All'}")
     print(f"Scale factor: {args.scale_factor}")
 
@@ -298,7 +303,7 @@ Examples:
         use_cases=args.use_cases,
         queries=query_ids,
         skip_setup=args.skip_setup,
-        model_name=args.model,
+        model_name=args.models,
         scale_factor=args.scale_factor,
     )
 

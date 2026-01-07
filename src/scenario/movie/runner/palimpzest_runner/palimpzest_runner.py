@@ -9,7 +9,6 @@ import palimpzest as pz
 from palimpzest.core.elements.records import DataRecordCollection
 from palimpzest.core.elements.groupbysig import GroupBySig
 from pathlib import Path
-from codecarbon import EmissionsTracker
 
 # Add parent directory to path for imports
 import sys
@@ -53,11 +52,6 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         Returns:
             DataFrame with columns: reviewId
         """
-
-        # Initialize carbon emissions tracker
-        tracker = EmissionsTracker()
-        tracker.start()
-
         # dev branch
         reviews = pz.MemoryDataset(
             id="reviews", vals=self.load_data("Reviews.csv")
@@ -69,13 +63,7 @@ class PalimpzestRunner(GenericPalimpzestRunner):
         reviews = reviews.project(["reviewId"])
         reviews = reviews.limit(5)
 
-        output = reviews.optimize_and_run(config=self.palimpzest_config(), validator=self.validator)
-
-        # Stop tracker and get emissions data
-        emissions = tracker.stop()
-        print(f"\n=== Carbon Emissions for Q1 ===")
-        print(f"Total emissions: {emissions:.6f} kg CO2eq")
-        print(f"================================\n")
+        output = reviews.optimize_and_run(config=self.palimpzest_config(num_semantic_ops=1), validator=self.validator)
 
         return output
 

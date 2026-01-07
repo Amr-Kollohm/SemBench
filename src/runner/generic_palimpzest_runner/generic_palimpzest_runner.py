@@ -18,6 +18,7 @@ import pandas as pd
 from palimpzest.constants import Model
 import json
 import os
+from codecarbon import EmissionsTracker
 
 from runner.generic_runner import GenericRunner, GenericQueryMetric
 
@@ -234,8 +235,12 @@ class GenericPalimpzestRunner(GenericRunner):
 
             return pz.QueryProcessorConfig(**config_kwargs, sample_budget=sample_budget)
         else:
-            # Use self.model_name to determine the model when config_data is not provided
-            selected_model = self._get_model_from_name(self.model_name)
+            # Use self.model_names to determine models when config_data is not provided
+            # If multiple models provided via CLI, use all of them
+            if len(self.model_names) > 1:
+                selected_models = [self._get_model_from_name(name) for name in self.model_names]
+            else:
+                selected_models = [self._get_model_from_name(self.model_name)]
 
             config_kwargs = {
                 "policy": pz.MaxQuality(),
@@ -244,11 +249,12 @@ class GenericPalimpzestRunner(GenericRunner):
                 "join_parallelism": self.concurrent_llm_worker,
                 "verbose": False,
                 "progress": True,
-                "available_models": [selected_model],
+                "available_models": selected_models,
             }
 
-            # Add reasoning_effort for compatible models
-            if self._should_use_reasoning_effort(selected_model):
+            # Add reasoning_effort for compatible models if only one model
+            # (reasoning effort with multiple models should be handled by optimizer)
+            if len(selected_models) == 1 and self._should_use_reasoning_effort(selected_models[0]):
                 config_kwargs["reasoning_effort"] = (
                     "minimal"  # Use minimal reasoning effort
                 )
@@ -271,9 +277,30 @@ class GenericPalimpzestRunner(GenericRunner):
 
         try:
             query_fn = self._discover_query_impl(query_id)
+            
+            # Start codecarbon tracking
+            tracker = EmissionsTracker(log_level="error")
+            tracker.start()
+            
             start_time = time.time()
             results = query_fn()
             execution_time = time.time() - start_time
+            
+            # Stop tracker and get emissions data
+            emissions_data = tracker.stop()
+            
+            # Store carbon metrics from tracker's final emissions
+            # codecarbon returns emissions in kg CO2eq
+            if emissions_data is not None:
+                metric.carbon_produced = emissions_data
+            
+            # Get more detailed metrics from tracker's final values
+            if hasattr(tracker, '_total_energy') and tracker._total_energy:
+                metric.energy_consumed = tracker._total_energy.kWh
+            if hasattr(tracker, '_total_co2') and tracker._total_co2:
+                metric.carbon_produced = tracker._total_co2.kg
+            if hasattr(tracker, '_total_water') and tracker._total_water:
+                metric.water_consumed = tracker._total_water.litres
 
             # Store results in metric
             metric.execution_time = execution_time

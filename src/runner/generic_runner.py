@@ -28,6 +28,9 @@ class GenericQueryMetric:
     results: pd.DataFrame = field(default_factory=pd.DataFrame)
     token_usage: int = None
     money_cost: float = None
+    energy_consumed: float = None  # kWh
+    carbon_produced: float = None  # kg CO2
+    water_consumed: float = None   # liters
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -51,7 +54,7 @@ class GenericRunner(ABC):
         self,
         use_case: str,
         scale_factor: int,
-        model_name: str,
+        model_name,
         concurrent_llm_worker: int,
         skip_setup: bool = False,
     ):
@@ -60,6 +63,7 @@ class GenericRunner(ABC):
 
         Args:
             use_case: The use case to run (e.g., 'movie')
+            model_name: Model name(s) - can be a string or list of strings
         """
         self.use_case = use_case
         self.system_name = self.get_system_name()
@@ -78,7 +82,19 @@ class GenericRunner(ABC):
 
         # Initialize metrics storage
         self.metrics: Dict[int, GenericQueryMetric] = {}
-        self.model_name = model_name
+        
+        # Store model_name - normalize to list for consistency
+        if isinstance(model_name, str):
+            self.model_name = model_name
+            self.model_names = [model_name]
+        elif isinstance(model_name, list):
+            self.model_names = model_name
+            # For backward compatibility, set model_name to first model
+            self.model_name = model_name[0] if model_name else "gemini-2.5-flash"
+        else:
+            self.model_name = "gemini-2.5-flash"
+            self.model_names = ["gemini-2.5-flash"]
+            
         self.scale_factor = scale_factor
         self.concurrent_llm_worker = concurrent_llm_worker
 
@@ -201,16 +217,35 @@ class GenericRunner(ABC):
         metrics_dict = {}
         for query_id, metric in self.metrics.items():
             query_name = f"Q{query_id}"
-            metrics_dict[query_name] = metric.to_dict()
-            metrics_dict[query_name]["model_name"] = self.model_name
-            metrics_dict[query_name][
-                "concurrent_llm_worker"
-            ] = self.concurrent_llm_worker
+            # Get base metrics from dataclass
+            base_metrics = metric.to_dict()
+            
+            # Build ordered dictionary with desired field order
+            metrics_dict[query_name] = {}
+            
+            # Add fields in specific order
+            for key in ["query_id", "status", "execution_time", "token_usage", "money_cost", "row_count"]:
+                if key in base_metrics:
+                    metrics_dict[query_name][key] = base_metrics[key]
+            
+            # Add model info - always as a list
+            metrics_dict[query_name]["available_models"] = self.model_names
+            metrics_dict[query_name]["concurrent_llm_worker"] = self.concurrent_llm_worker
+            
+            # Add codecarbon metrics after concurrent_llm_worker
+            if "energy_consumed" in base_metrics and base_metrics["energy_consumed"] is not None:
+                metrics_dict[query_name]["energy_consumed"] = base_metrics["energy_consumed"]
+            if "carbon_produced" in base_metrics and base_metrics["carbon_produced"] is not None:
+                metrics_dict[query_name]["carbon_produced"] = base_metrics["carbon_produced"]
+            if "water_consumed" in base_metrics and base_metrics["water_consumed"] is not None:
+                metrics_dict[query_name]["water_consumed"] = base_metrics["water_consumed"]
+            
+            # Add remaining fields (like precision, recall, f1_score if they exist)
+            for key, value in base_metrics.items():
+                if key not in metrics_dict[query_name]:
+                    metrics_dict[query_name][key] = value
+            
             self.save_results(query_id, metric.results)
-
-        # # write query results to csv files
-        # for query_id, metric in self.metrics.items():
-        #     self.save_results(query_id, metric.results)
 
         with open(metrics_file, "w") as f:
             json.dump(metrics_dict, f, indent=2)
