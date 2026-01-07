@@ -44,7 +44,16 @@ class CarsScenario:
                 pass  # Nothing to do. Palimpzest works on raw files.
             
             elif system == "thalamusdb":
-                pass
+                from scenario.cars.setup.thalamusdb import ThalamusDBCarsSetup
+
+                setup = ThalamusDBCarsSetup()
+                setup.setup_data(data_dir=self.data_dir, scale_factor=self.scale_factor)
+
+            elif system == "flockmtl":
+                from scenario.cars.setup.flockmtl import FlockMTLCarsSetup
+
+                setup = FlockMTLCarsSetup()
+                setup.setup_data(data_dir=self.data_dir, scale_factor=self.scale_factor)
 
             else:
                 raise ValueError(f"Unsupported system: {system}")
