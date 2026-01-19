@@ -71,6 +71,18 @@
     "recall": 0.9708271287396778,
     "f1_score": 0.9639112903225807
   },
+  "Q8": {
+    "query_id": "8",
+    "status": "success",
+    "execution_time": 2479.1119241714478,
+    "money_cost": 16.030044000001286,
+    "row_count": 100,
+    "model_name": "gemini-2.5-flash",
+    "concurrent_llm_worker": 20,
+    "precision": 0.27,
+    "recall": 0.27,
+    "f1_score": 0.27
+  },
   "Q9": {
     "query_id": "9",
     "status": "success",
