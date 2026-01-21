@@ -28,6 +28,10 @@ METRIC_DEFINITIONS = {
     'absolute_error': {'label': 'Absolute Error', 'unit': 'error'},
     'relative_error': {'label': 'Relative Error', 'unit': 'error'},
     'mean_absolute_percentage_error': {'label': 'MAPE', 'unit': '%'},
+    'spearman_correlation': {'label': 'Spearman Correlation', 'unit': 'coefficient'},
+    'kendall_tau': {'label': 'Kendall Tau', 'unit': 'coefficient'},
+    'adjusted_rand_index': {'label': 'Adjusted Rand Index', 'unit': 'score'},
+    'omega_index': {'label': 'Omega Index', 'unit': 'score'},
 }
 
 # Group metrics by category
@@ -43,6 +47,10 @@ METRIC_GROUPS = {
     'environmental': {
         'title': 'Environmental Metrics',
         'metrics': ['water_consumed', 'energy_consumed', 'carbon_produced'],
+    },
+    'ranking': {
+        'title': 'Ranking & Clustering Metrics',
+        'metrics': ['spearman_correlation', 'kendall_tau', 'adjusted_rand_index', 'omega_index'],
     },
 }
 
@@ -67,18 +75,37 @@ def extract_metric_values(metrics1: Dict, metrics2: Dict, metric_name: str) -> T
     # Get all query IDs from both files
     all_queries = set(metrics1.keys()) | set(metrics2.keys())
     
+    # Handle special case for clustering metrics stored as accuracy with metric_type
+    metric_type_map = {
+        'adjusted_rand_index': 'adjusted-rand-index',
+        'omega_index': 'omega-index'
+    }
+    
     for query_id in sorted(all_queries):
         # Only include if both have the metric
         if query_id in metrics1 and query_id in metrics2:
-            if metric_name in metrics1[query_id] and metric_name in metrics2[query_id]:
+            val1 = None
+            val2 = None
+            
+            # Check if this is a clustering metric stored with metric_type
+            if metric_name in metric_type_map:
+                expected_type = metric_type_map[metric_name]
+                if (metrics1[query_id].get('metric_type') == expected_type and 
+                    'accuracy' in metrics1[query_id]):
+                    val1 = metrics1[query_id]['accuracy']
+                if (metrics2[query_id].get('metric_type') == expected_type and 
+                    'accuracy' in metrics2[query_id]):
+                    val2 = metrics2[query_id]['accuracy']
+            # Regular metric extraction
+            elif metric_name in metrics1[query_id] and metric_name in metrics2[query_id]:
                 val1 = metrics1[query_id][metric_name]
                 val2 = metrics2[query_id][metric_name]
-                
-                # Skip None values
-                if val1 is not None and val2 is not None:
-                    query_ids.append(query_id)
-                    values1.append(val1)
-                    values2.append(val2)
+            
+            # Skip None values
+            if val1 is not None and val2 is not None:
+                query_ids.append(query_id)
+                values1.append(val1)
+                values2.append(val2)
     
     return query_ids, values1, values2
 
