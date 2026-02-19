@@ -60,6 +60,9 @@ class MedicalScenario:
             elif system == "thalamusdb":
                 pass
 
+            elif system == "docetl":
+                pass  # Nothing to do. DocETL works on raw files.
+
             else:
                 raise ValueError(f"Unsupported system: {system}")
 

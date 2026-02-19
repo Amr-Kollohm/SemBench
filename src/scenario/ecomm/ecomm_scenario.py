@@ -103,6 +103,8 @@ class EcommScenario:
                 pass  # Nothing to do. LOTUS works on raw files.
             elif system == "palimpzest":
                 pass  # Nothing to do. Palimpzest works on raw files.
+            elif system == "docetl":
+                pass  # Nothing to do. DocETL works on raw files.
             else:
                 raise ValueError(f"Unsupported system: {system}")
 
