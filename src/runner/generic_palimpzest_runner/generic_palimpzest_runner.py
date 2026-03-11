@@ -18,8 +18,6 @@ import pandas as pd
 from palimpzest.constants import Model
 import json
 import os
-from codecarbon import EmissionsTracker
-
 from runner.generic_runner import GenericRunner, GenericQueryMetric
 
 litellm.drop_params = True
@@ -278,29 +276,9 @@ class GenericPalimpzestRunner(GenericRunner):
         try:
             query_fn = self._discover_query_impl(query_id)
             
-            # Start codecarbon tracking
-            tracker = EmissionsTracker(log_level="error")
-            tracker.start()
-            
             start_time = time.time()
             results = query_fn()
             execution_time = time.time() - start_time
-            
-            # Stop tracker and get emissions data
-            emissions_data = tracker.stop()
-            
-            # Store carbon metrics from tracker's final emissions
-            # codecarbon returns emissions in kg CO2eq
-            if emissions_data is not None:
-                metric.carbon_produced = emissions_data
-            
-            # Get more detailed metrics from tracker's final values
-            if hasattr(tracker, '_total_energy') and tracker._total_energy:
-                metric.energy_consumed = tracker._total_energy.kWh
-            if hasattr(tracker, '_total_co2') and tracker._total_co2:
-                metric.carbon_produced = tracker._total_co2.kg
-            if hasattr(tracker, '_total_water') and tracker._total_water:
-                metric.water_consumed = tracker._total_water.litres
 
             # Store results in metric
             metric.execution_time = execution_time

@@ -28,9 +28,6 @@ class GenericQueryMetric:
     results: pd.DataFrame = field(default_factory=pd.DataFrame)
     token_usage: int = None
     money_cost: float = None
-    energy_consumed: float = None  # kWh
-    carbon_produced: float = None  # kg CO2
-    water_consumed: float = None   # liters
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -231,14 +228,6 @@ class GenericRunner(ABC):
             # Add model info - always as a list
             metrics_dict[query_name]["available_models"] = self.model_names
             metrics_dict[query_name]["concurrent_llm_worker"] = self.concurrent_llm_worker
-            
-            # Add codecarbon metrics after concurrent_llm_worker
-            if "energy_consumed" in base_metrics and base_metrics["energy_consumed"] is not None:
-                metrics_dict[query_name]["energy_consumed"] = base_metrics["energy_consumed"]
-            if "carbon_produced" in base_metrics and base_metrics["carbon_produced"] is not None:
-                metrics_dict[query_name]["carbon_produced"] = base_metrics["carbon_produced"]
-            if "water_consumed" in base_metrics and base_metrics["water_consumed"] is not None:
-                metrics_dict[query_name]["water_consumed"] = base_metrics["water_consumed"]
             
             # Add remaining fields (like precision, recall, f1_score if they exist)
             for key, value in base_metrics.items():

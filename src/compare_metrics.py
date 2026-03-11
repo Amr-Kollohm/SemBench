@@ -43,9 +43,6 @@ METRIC_DEFINITIONS = {
     'execution_time': {'label': 'Execution Time', 'unit': 'seconds'},
     'token_usage': {'label': 'Token Usage', 'unit': 'tokens'},
     'money_cost': {'label': 'Cost', 'unit': 'dollars'},
-    'energy_consumed': {'label': 'Energy Consumed', 'unit': 'kWh'},
-    'carbon_produced': {'label': 'Carbon Produced', 'unit': 'kg CO2'},
-    'water_consumed': {'label': 'Water Consumed', 'unit': 'liters'},
     'accuracy': {'label': 'Accuracy', 'unit': 'score'},
     'precision': {'label': 'Precision', 'unit': 'score'},
     'recall': {'label': 'Recall', 'unit': 'score'},
@@ -68,10 +65,6 @@ METRIC_GROUPS = {
     'cost': {
         'title': 'Cost & Resource Metrics',
         'metrics': ['execution_time', 'money_cost', 'token_usage'],
-    },
-    'environmental': {
-        'title': 'Environmental Metrics',
-        'metrics': ['water_consumed', 'energy_consumed', 'carbon_produced'],
     },
     'ranking': {
         'title': 'Ranking & Clustering Metrics',
