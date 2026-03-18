@@ -54,6 +54,10 @@ METRIC_DEFINITIONS = {
     'kendall_tau': {'label': 'Kendall Tau', 'unit': 'coefficient'},
     'adjusted_rand_index': {'label': 'Adjusted Rand Index', 'unit': 'score'},
     'omega_index': {'label': 'Omega Index', 'unit': 'score'},
+    'energy_consumed': {'label': 'Energy Consumed', 'unit': 'kWh'},
+    'ghg_emissions': {'label': 'GHG Emissions', 'unit': 'kgCO2eq'},
+    'adpe': {'label': 'Abiotic Depletion (ADPe)', 'unit': 'kgSbeq'},
+    'pe': {'label': 'Primary Energy (PE)', 'unit': 'MJ'},
 }
 
 # Group metrics by category
@@ -69,6 +73,10 @@ METRIC_GROUPS = {
     'ranking': {
         'title': 'Ranking & Clustering Metrics',
         'metrics': ['spearman_correlation', 'kendall_tau', 'adjusted_rand_index', 'omega_index'],
+    },
+    'environmental': {
+        'title': 'Environmental Impact Metrics',
+        'metrics': ['energy_consumed', 'ghg_emissions', 'adpe', 'pe'],
     },
 }
 

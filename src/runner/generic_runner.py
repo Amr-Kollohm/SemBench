@@ -28,6 +28,10 @@ class GenericQueryMetric:
     results: pd.DataFrame = field(default_factory=pd.DataFrame)
     token_usage: int = None
     money_cost: float = None
+    energy_consumed: float = None  # kWh (EcoLogits)
+    ghg_emissions: float = None   # kgCO2eq (EcoLogits)
+    adpe: float = None             # kgSbeq (EcoLogits)
+    pe: float = None               # MJ (EcoLogits)
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -95,6 +99,10 @@ class GenericRunner(ABC):
         self.scale_factor = scale_factor
         self.concurrent_llm_worker = concurrent_llm_worker
 
+        # Initialize EcoLogits environmental impact tracking
+        from runner.ecologits_tracker import create_tracker
+        self._ecologits_tracker = create_tracker()
+
         # Manage scenario-specific data
         self.scenario_handler = GenericRunner.get_scenario_handler(
             self.use_case, self.scale_factor
@@ -138,8 +146,17 @@ class GenericRunner(ABC):
         """
         results = {}
         for query_id in query_ids:
+            if self._ecologits_tracker is not None:
+                self._ecologits_tracker.reset()
             try:
-                results[query_id] = self.execute_query(query_id)
+                metric = self.execute_query(query_id)
+                if self._ecologits_tracker is not None:
+                    env = self._ecologits_tracker.get_results()
+                    metric.energy_consumed = env.energy_consumed
+                    metric.ghg_emissions = env.ghg_emissions
+                    metric.adpe = env.adpe
+                    metric.pe = env.pe
+                results[query_id] = metric
             except Exception as e:
                 print(f"Error executing query {query_id}: {e}")
                 results[query_id] = GenericQueryMetric(
@@ -221,7 +238,8 @@ class GenericRunner(ABC):
             metrics_dict[query_name] = {}
             
             # Add fields in specific order
-            for key in ["query_id", "status", "execution_time", "token_usage", "money_cost", "row_count"]:
+            for key in ["query_id", "status", "execution_time", "token_usage", "money_cost", "row_count",
+                        "energy_consumed", "ghg_emissions", "adpe", "pe"]:
                 if key in base_metrics:
                     metrics_dict[query_name][key] = base_metrics[key]
             
