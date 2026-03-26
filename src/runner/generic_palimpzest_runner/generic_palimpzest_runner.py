@@ -295,7 +295,14 @@ class GenericPalimpzestRunner(GenericRunner):
         """Update metric with token usage and cost information."""
         try:
             # Get usage stats from Palimpzest execution stats
-            metric.token_usage = exec_stats.total_tokens
+            metric.token_usage = (exec_stats.input_text_tokens 
+            +exec_stats.input_audio_tokens 
+            +exec_stats.input_image_tokens 
+            +exec_stats.cache_read_tokens 
+            +exec_stats.cache_creation_tokens 
+            +exec_stats.output_text_tokens
+            +exec_stats.embedding_input_tokens) 
+
             metric.money_cost = exec_stats.total_execution_cost
 
             # Print usage for debugging
