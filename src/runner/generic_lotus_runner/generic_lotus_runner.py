@@ -296,19 +296,15 @@ class GenericLotusRunner(GenericRunner):
             total_tokens = lotus.settings.lm.stats.physical_usage.total_tokens
             total_cost = lotus.settings.lm.stats.physical_usage.total_cost
             
-            # Calculate cost using our token consumption
-            calculated_cost = self._calculate_cost(prompt_tokens, completion_tokens)
-
-            # Print both tokens for comparison
+            # Print tokens for reference
             print(f"prompt token: {prompt_tokens}, completion token: {completion_tokens}")
             print(f"total tokens: {total_tokens}")
             
-            # Print both costs for comparison
+            # Use LOTUS's own cost calculation which is accurate
             print(f"  LOTUS cost: ${total_cost:.6f}")
-            print(f"  Calculated cost based on token consumption: ${calculated_cost:.6f}")
 
             metric.token_usage = total_tokens
-            metric.money_cost = calculated_cost
+            metric.money_cost = total_cost
 
         except Exception as e:
             print(f"  Warning: Could not get token usage: {e}")
