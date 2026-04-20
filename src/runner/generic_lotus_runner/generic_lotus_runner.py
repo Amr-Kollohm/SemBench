@@ -65,7 +65,7 @@ class GenericLotusRunner(GenericRunner):
         model_name: str = "gemini-2.5-flash",
         concurrent_llm_worker=20,
         skip_setup: bool = False,
-        policy="approximate",
+        policy="exact",
         ranking="map",
     ):
         """
@@ -95,7 +95,7 @@ class GenericLotusRunner(GenericRunner):
 
         lotus.settings.configure(lm=self.lm)
 
-        self._initialize_lotus_with_warmup()
+        # self._initialize_lotus_with_warmup()
 
     def _configure_lm(self) -> LM:
         """
@@ -139,6 +139,9 @@ class GenericLotusRunner(GenericRunner):
             return LM(
                 self.model_name, **base_config, reasoning_effort="minimal"
             )
+        elif "gpt-4o-mini" in model_lower or "gpt_4o_mini" in model_lower:
+            # gpt-4o-mini: no reasoning_effort needed
+            return LM(self.model_name, **base_config)
         else:
             # Default configuration for unknown models (no reasoning_effort)
             print(
