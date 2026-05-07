@@ -65,6 +65,7 @@ def run(config_builder, data_dir: str, validator=None):
         depends_on=[
             "productDisplayName_footwear",
             "productDescriptors_footwear",
+            "image_file_path_footwear",
         ],
     )
 
@@ -78,6 +79,7 @@ def run(config_builder, data_dir: str, validator=None):
         depends_on=[
             "productDisplayName_bottomwear",
             "productDescriptors_bottomwear",
+            "image_file_path_bottomwear",
         ],
     )
 
@@ -91,6 +93,7 @@ def run(config_builder, data_dir: str, validator=None):
         depends_on=[
             "productDisplayName_topwear",
             "productDescriptors_topwear",
+            "image_file_path_topwear",
         ],
     )
 
@@ -103,6 +106,7 @@ def run(config_builder, data_dir: str, validator=None):
         depends_on=[
             "productDisplayName_accessories",
             "productDescriptors_accessories",
+            "image_file_path_accessories",
         ],
     )
 
